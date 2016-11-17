@@ -4,11 +4,12 @@ import sys
 # require to install MySQLdb module
 # also need to install setuptools module, sudo apt-get install python-dev, sudo apt-get install libmysqlclient-dev
 import MySQLdb 
+import time
 
 #print 'Number of arguments: ', str(sys.argv)
 arg = sys.argv
-#print 'argument1: ', arg[1]
-#print 'argument2: ', arg[2]
+extension = arg[1]
+webroot = arg[2]
 
 # create connection 
 conn = MySQLdb.connect(host="localhost", port=3306, user="root", passwd="human01", db="test")
@@ -18,24 +19,61 @@ cursor = conn.cursor()
 
 #check if Temando extension is install 
 cursor.execute("SELECT * FROM setup_module WHERE module='Temando_Temando'")
-conn.commit()
 data = cursor.fetchall()
-for row in data:
-    print row
+if data:
+    try:
+        # remove all Temando extension 
+        print "remove a existing Temando extenion..."
+        time.sleep(2)        
+        rmCmd = 'rm -rf ' + webroot + 'app/code/Temando'
+        os.system(rmCmd)
 
-sys.exit()
+        # remove temando tables
+        print "remove old temando tables..."
+        time.sleep(2)        
+        cursor.execute("DROP TABLE IF EXISTS `temando_booking`,`temando_box`,`temando_carrier`,`temando_origin`,`temando_quote`,`temando_shipment`,`temando_shipment_item`,`temando_zone`");
+
+        # remove all temando configuration 
+        cursor.execute("DELETE FROM core_config_data WHERE path like '%temando%'")
+        
+        # remove temando setup_module
+        print "remove temando configuration..."
+        time.sleep(2)        
+        cursor.execute("DELETE FROM setup_module WHERE module like '%Temando%'")
+        conn.commit()
+
+    except MySQLdb.Warning, e:
+        print str(e) 
+
+#sys.exit()
 
 # copy Magento 2 extension to destination directory: app / code
-# arg[1]: Magento 2 extension
-# arg[2]: Magento root directory
-cpCmd = 'cp -a ' + str(arg[1]) +  ' ' + str(arg[2]) + 'app/code'
+print "copy new temando extension..."
+time.sleep(2)
+cpCmd = 'cp -a ' +  extension +  ' ' + webroot + 'app/code'
 #print 'cmd ', cmd
-#cmd = 'l' 's'
 os.system(cpCmd)
 
 # run command to upgrade Magento 2 extension 
-upgradeCmd = 'php' + str(arg[2]) + 'bin/magento setup:upgrade'
-os.system(upgradeCmd)
+print "run magento upgrade..."
+time.sleep(2)
+upgradeCmd = 'php ' + webroot + 'bin/magento setup:upgrade'
+#os.system(upgradeCmd)
+
 
 # clean all Magento cache: cache, generation and page_cache folder
-cleanCmd = 'rm -rf'  + str(arg[2]) + 'var/cache' + ' ' + str(arg[2]) + ' ' + 'var/generation' + ' ' + str[arg[2]] + ' ' + 'var/page_cache';
+print "Magento cache cleaning..."
+time.sleep(2)
+cleanCmd = 'rm -rf '  + webroot + 'var/cache' + ' ' + webroot + 'var/generation' + ' ' + webroot + 'var/page_cache';
+os.system(cleanCmd)
+
+
+# generate magento static content
+print "magento static content generate..."
+time.sleep(2)
+#generateCmd = 'php ' + webroot + 'bin/magento setup:static-content:deploy'
+#os.system(generateCmd)
+
+# complete 
+print "COMPLETED..."
+time.sleep(2)
