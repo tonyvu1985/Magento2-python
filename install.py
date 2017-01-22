@@ -61,7 +61,7 @@ if data:
 # copy Magento 2 extension to destination directory: app / code
 print "copy new temando extension..."
 time.sleep(2)
-cpCmd = 'cp -a ' +  extension +  ' ' + webroot + 'app/code'
+cpCmd = 'cp -a ' +  extension +  ' ' + webroot
 #print 'cmd ', cmd
 os.system(cpCmd)
 
